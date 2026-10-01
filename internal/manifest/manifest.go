@@ -109,10 +109,18 @@ func Decode(b []byte) (Current, error) {
 	return c, nil
 }
 
+// Stage names points inside Publish, for crash hooks.
+type Stage int
+
+const (
+	StageTmpSynced Stage = iota // CURRENT.tmp written and fsynced, not yet renamed
+	StageRenamed                // renamed over CURRENT, directory not yet synced
+)
+
 // Publish atomically replaces CURRENT with c. It reports whether the rename
 // was attempted: after that point either manifest may be the durable one.
-// hook (may be nil) runs after the temp file is fsynced, before the rename.
-func Publish(fsys vfs.FS, dir string, c Current, hook func()) (renameAttempted bool, err error) {
+// hook may be nil.
+func Publish(fsys vfs.FS, dir string, c Current, hook func(Stage)) (renameAttempted bool, err error) {
 	final := filepath.Join(dir, FileName)
 	tmp := final + ".tmp"
 	f, err := fsys.OpenFile(tmp, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
@@ -130,10 +138,13 @@ func Publish(fsys vfs.FS, dir string, c Current, hook func()) (renameAttempted b
 		return false, err
 	}
 	if hook != nil {
-		hook()
+		hook(StageTmpSynced)
 	}
 	if err := fsys.Rename(tmp, final); err != nil {
 		return true, err
+	}
+	if hook != nil {
+		hook(StageRenamed)
 	}
 	return true, fsys.SyncDir(dir)
 }
