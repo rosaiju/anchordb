@@ -23,6 +23,9 @@ func openT(t testing.TB, dir string, opts *anchordb.Options) *anchordb.DB {
 	if err != nil {
 		t.Fatalf("Open(%s): %v", dir, err)
 	}
+	// Release the directory lock if the test fails before closing (Windows
+	// cannot remove a TempDir whose LOCK is held). Closing twice is harmless.
+	t.Cleanup(func() { db.Close() })
 	return db
 }
 

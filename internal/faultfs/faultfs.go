@@ -279,6 +279,20 @@ func (f *FS) LoseUnsynced() error {
 	return nil
 }
 
+// SyncedLengths returns, for every file path seen, the length it had at its
+// last successful Sync (or when first opened). A test can copy a live
+// directory and cut each copy to these lengths to approximate power loss
+// without closing the DB (Close would fsync).
+func (f *FS) SyncedLengths() map[string]int64 {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	out := make(map[string]int64, len(f.synced))
+	for k, v := range f.synced {
+		out[k] = v
+	}
+	return out
+}
+
 type file struct {
 	fs    *FS
 	inner vfs.File
