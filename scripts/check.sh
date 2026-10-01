@@ -34,10 +34,10 @@ else
 fi
 
 # Short fuzzing pass over every persistent-format decoder (seed corpus + FUZZTIME of new inputs each).
-for target in $(grep -rhoE '^func Fuzz[A-Za-z0-9_]+' --include='*_test.go' internal | sed 's/^func //' | sort -u); do
-  pkg=$(grep -rlE "^func $target\(" --include='*_test.go' internal | head -1 | xargs dirname)
-  step "fuzz $target ($FUZZTIME)" go test "./$pkg" -run '^$' -fuzz "^${target}\$" -fuzztime "$FUZZTIME"
-done
+while IFS=: read -r file target; do
+  pkg=$(dirname "$file")
+  step "fuzz $pkg.$target ($FUZZTIME)" go test "./$pkg" -run '^$' -fuzz "^${target}\$" -fuzztime "$FUZZTIME"
+done < <(grep -rHoE '^func Fuzz[A-Za-z0-9_]+' --include='*_test.go' internal | sed 's/:func /:/' | sort -u)
 
 step "demo" bash scripts/demo.sh "${TMPDIR:-/tmp}/anchordb-check-demo"
 
