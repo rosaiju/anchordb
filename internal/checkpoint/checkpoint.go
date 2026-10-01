@@ -61,9 +61,9 @@ func encodeHeader(txid uint64) []byte {
 type Stage int
 
 const (
-	StagePartial  Stage = iota // first Entries frame written (or, if empty, before the trailer)
-	StageSynced                // temp file complete and fsynced
-	StageRenamed               // renamed to its final name
+	StagePartial Stage = iota // first Entries frame written (or, if empty, before the trailer)
+	StageSynced               // temp file complete and fsynced
+	StageRenamed              // renamed to its final name
 )
 
 // Write creates Name(txid) in dir: entries go to a temp file, which is fsynced
