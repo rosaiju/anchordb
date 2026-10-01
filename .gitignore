@@ -1,0 +1,7 @@
+/anchordb
+/anchordb.exe
+/bin/
+*.test
+*.prof
+/demo-data/
+/testdata/fuzz-tmp/
