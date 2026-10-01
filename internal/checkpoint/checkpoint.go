@@ -152,8 +152,12 @@ func Write(fsys vfs.FS, dir string, txid uint64, each func(yield func(k, v []byt
 	if hook != nil {
 		hook(StageSynced)
 	}
-	renamed = true // from here the temp file is closed; leave cleanup to Open
+	renamed = true // the temp file is closed; the deferred cleanup must not close it again
 	if err = fsys.Rename(tmp, final); err != nil {
+		// A failed rename normally leaves the temp file in place; remove it
+		// (spec §5.5). If the rename did happen, this Remove fails harmlessly
+		// and the unreferenced checkpoint is cleaned up later.
+		fsys.Remove(tmp)
 		return err
 	}
 	if hook != nil {
