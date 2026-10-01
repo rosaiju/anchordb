@@ -96,8 +96,10 @@ was run for 10–20 s per target during development):
   while a checkpoint is running. That last one is serialized by `ckptMu`
   according to the spec, but no test forces the interleaving.
 
-## Known failing tests (engine bugs, reported to the engine owner)
+## Engine bugs found by this suite
 
-| Test | Spec | Problem |
-|---|---|---|
-| `TestCheckpointFailures/ckpt_rename` | §5.5 "Failure in steps 3–4 …: delete temp files" | When renaming `checkpoint-T.ckpt.tmp` fails, the engine returns the error but never tries to remove the temp file. It stays until the next `Open`. |
+There are no known failing tests. Bugs the independent suite found, and their fixes:
+
+| Test | Spec | Problem | Fix |
+|---|---|---|---|
+| `TestCheckpointFailures/ckpt_rename` | §5.5 "Failure in steps 3–4 …: delete temp files" | When renaming `checkpoint-T.ckpt.tmp` failed, the engine returned the error but never removed the temp file; it stayed until the next `Open`. | commit 2885da3: `checkpoint.Write` removes the temp file when the rename fails. The test was not changed. |

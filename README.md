@@ -2,7 +2,7 @@
 
 AnchorDB is an **educational** transactional key-value storage engine written
 in Go. It is a single-machine, embedded library (plus a small CLI) that shows,
-in roughly 1,500 lines of engine code, how a storage engine provides:
+in about 2,200 non-blank lines of engine code (plus about 5,600 lines of tests and test tooling), how a storage engine provides:
 
 - `Get`, `Put`, `Delete`, and ordered range `Scan`
 - `Begin` / `Commit` / `Rollback` with atomic multi-key transactions
