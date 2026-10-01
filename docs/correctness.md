@@ -47,6 +47,7 @@ was run for 10–20 s per target during development):
 | 10 | Bank invariant: total preserved in every snapshot **and** the exact balance of every account (computed independently, so an engine that does nothing fails) | none | `TestBankConcurrentExactBalances` (commuting transfers, concurrent, checkpoint mid-run, reopen), `TestBankSequentialMatchesModel` (conditional transfers vs. model, reopens) |
 | 11 | Checkpoint concurrent with writers, readers and Stats; Stats stays consistent (§3 metaMu, §5.5) | none | `TestCheckpointConcurrentWithWriters` |
 | 12 | Close waits for open txs; a Begin blocked during Close gets `ErrClosed`; methods after Close return `ErrClosed` (r11) | none | `TestCloseWaitsForOpenTx`, `TestClosedDB` |
+| 12b | `Close` arriving while a `Checkpoint` is running waits for it, both while the snapshot is written (checkpoint holds `mu` shared) and during `CURRENT` publication (no `mu` held; only `ckptMu` protects it); neither deadlocks; the checkpoint completes and is published; reopening preserves every committed transaction, including one committed during publication (§2.2 r11, §3) | none | `TestCloseWaitsForRunningCheckpoint` (added by the main agent during integration). Deterministic: a gating FS pauses the checkpoint at a chosen write, and goroutine stacks confirm that `Close` is parked on a lock before release (no sleeps; timeouts are deadlock watchdogs only). Ran 500× and 200× under `-race`. Mutation check: removing `ckptMu` from `Close` makes the publication case fail. |
 | 13 | Directory lock: second Open → `ErrLocked`, in-process and from another process; the lock is released when the holder dies; a failed Open releases it (§2.1.1, §8) | OS releases locks on process exit | `TestSecondOpenInProcessIsLocked`, `TestLockAcrossProcesses`, `internal/lock.TestExclusiveAcrossProcesses`, `openCorrupt` helper (used by every corruption test) |
 | 14 | Commit point: under **process crash**, every acknowledged commit survives; the recovered state equals the model applied to a prefix of attempted transactions that contains every acked one (at most one extra, the in-flight tx) (§5.2, §6.4) | process kill (`os.Exit` at a crash point); page-cache contents survive | `TestCrashPoints/*`, `TestCrashRandomized` |
 | 15 | Per-crash-point outcomes in the §7.2 table (in-flight present/absent, `TruncatedBytes == ⌊len/2⌋`, final empty segment after `rotate.after-rename`, old/new `CURRENT`, garbage removed at Open, nothing left after `after-reclaim`), in both sync modes for commit points | process kill | `TestCrashPoints/*` (all 20 points, several in two configurations), `TestCrashAfterReclaimLeavesNothing`, `TestCrashCheckpointPartialWriteEmptyDB`, `TestCrashInitAfterSegment`, `TestCrashRecoveryAfterTruncate`, `TestCrashRecoveryMidCleanup`, `TestCrashPointsAllCovered` (checks every name in `crashpoint.Names()` is covered) |
@@ -69,7 +70,7 @@ was run for 10–20 s per target during development):
 
 ## What is NOT proven
 
-* **Process kill is not power loss.** The crash tests end the process with
+* **Crash testing covers process termination, not power loss.** The crash tests end the process with
   `os.Exit`. Everything already passed to `write` survives in the OS page
   cache. That shows the protocol never acknowledges before its commit point and
   that recovery handles every intermediate *file* state a process crash can
@@ -80,8 +81,13 @@ was run for 10–20 s per target during development):
   lies about cache flushes (§8 assumption 1). On Windows, `SyncDir` is a
   no-op, and the rename durability (`MOVEFILE_WRITE_THROUGH`) comes from NTFS
   and is not tested.
-* **Only Windows 11 / NTFS was tested.** The Linux/macOS code paths, including
-  directory fsync, are not exercised.
+* **Runtime testing was on Windows 11 / NTFS only.** Every test that *runs*
+  was executed only on Windows 11 / NTFS / amd64: unit, crash, fault-injection,
+  randomized, race-detector, fuzzing, and the demos. Linux and macOS got
+  **static checks only**: the code compiles and passes `go vet` with
+  `GOOS=linux` and `GOOS=darwin`. No test has been executed there, so their
+  platform-specific code (`flock`, directory fsync, `os.Rename`) is not
+  runtime-tested.
 * **Undetectable loss is undetectable.** Losing whole final segments, or a log
   cut exactly at a record boundary, cannot be detected (§6.2, §11).
   `TestMissingFinalSegmentIsUndetectable` pins this documented behaviour; it is
@@ -91,10 +97,10 @@ was run for 10–20 s per target during development):
   probability only.
 * **Concurrency is tested, not proven.** The tests use bounded schedules. The
   race detector reports only races that actually occur during the run.
-* **Fuzzing is short.** It ran for seconds per target, not CPU-days.
-* **Out of scope:** memory exhaustion, datasets near the RAM limit, and `Close`
-  while a checkpoint is running. That last one is serialized by `ckptMu`
-  according to the spec, but no test forces the interleaving.
+* **Fuzzing was brief.** Each of the five decoders got one coverage-guided
+  run of 15 seconds (`FUZZTIME=15s` in `scripts/check.sh`); the seed corpora
+  also run on every `go test`. That is a smoke test, not CPU-days of fuzzing.
+* **Out of scope:** memory exhaustion and datasets near the RAM limit.
 
 ## Engine bugs found by this suite
 

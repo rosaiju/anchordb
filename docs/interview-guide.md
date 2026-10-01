@@ -42,7 +42,9 @@
    every named crash point, checked against externally recorded acknowledged
    commits and a reference model; fault injection for short writes and failed
    fsyncs; torn and corrupted log files; randomized operation sequences against
-   a reference model; fuzzing of every decoder; and the race detector.
+   a reference model; a brief 15-second fuzzing run per decoder; and the race
+   detector. All runtime testing was on Windows; Linux and macOS only compile
+   and pass `go vet`. The crash tests cover process termination, not power loss.
 
 ## Technical questions and answers
 

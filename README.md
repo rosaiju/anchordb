@@ -91,7 +91,7 @@ powershell -ExecutionPolicy Bypass -File scripts\demo.ps1   # Windows PowerShell
 ```
 
 The full verification suite (format, vet, tests, race detector when a C
-compiler is available, short fuzzing of all decoders, demo):
+compiler is available, a brief 15-second fuzzing run per decoder, demo):
 
 ```sh
 bash scripts/check.sh
@@ -125,9 +125,9 @@ segments deleted. Details: [docs/architecture.md](docs/architecture.md).
 
 | Platform | Status |
 |---|---|
-| Windows 11 / NTFS / amd64 | developed and tested (unit, crash, fault-injection, race detector) |
-| Linux (ext4, xfs) | code paths exist (`flock`, directory fsync); compiles and vets; **not tested by the author** |
-| macOS (APFS) | compiles and vets; **not tested**; Go's `File.Sync` uses `F_FULLFSYNC` |
+| Windows 11 / NTFS / amd64 | **runtime-tested**: unit, crash, fault-injection, randomized, race detector, brief fuzzing, demos |
+| Linux (ext4, xfs) | **static checks only**: compiles and passes `go vet` (`GOOS=linux`); no tests executed. `flock` and directory-fsync code is not runtime-tested |
+| macOS (APFS) | **static checks only**: compiles and passes `go vet` (`GOOS=darwin`); no tests executed. Go's `File.Sync` uses `F_FULLFSYNC` |
 
 Local disks only; network file systems are not supported.
 
@@ -142,8 +142,8 @@ Local disks only; network file systems are not supported.
 - A complete-length WAL record with a bad checksum makes `Open` fail; there is
   no repair tool.
 - Loss of entire final WAL segments cannot be detected.
-- The crash tests kill processes; they do not prove behaviour under every
-  power-loss scenario. Power-loss durability rests on the file-system
+- Crash testing covers process termination, not power loss; it does not prove
+  behaviour under any power-loss scenario. Power-loss durability rests on the file-system
   assumptions listed in [docs/architecture.md §8](docs/architecture.md#8-platforms-and-file-system-assumptions).
 - No SQL, networking, replication, MVCC, compression, or secondary indexes, by design.
 
