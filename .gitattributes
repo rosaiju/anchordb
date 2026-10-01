@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.ckpt binary
+*.log binary
+testdata/** binary
