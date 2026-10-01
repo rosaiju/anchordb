@@ -188,12 +188,12 @@ func TestZerosInsideFrameIsCorruption(t *testing.T) {
 
 func TestBadSegmentHeader(t *testing.T) {
 	cases := map[string]func([]byte) []byte{
-		"short":    func(b []byte) []byte { return b[:20] },
-		"empty":    func(b []byte) []byte { return nil },
-		"magic":    func(b []byte) []byte { b[1] ^= 1; return b },
-		"crc":      func(b []byte) []byte { b[24] ^= 1; return b },
-		"seq":      func(b []byte) []byte { return append(refmodel.SegmentHeader(99), b[32:]...) },
-		"zeroed":   func(b []byte) []byte { return make([]byte, len(b)) },
+		"short":  func(b []byte) []byte { return b[:20] },
+		"empty":  func(b []byte) []byte { return nil },
+		"magic":  func(b []byte) []byte { b[1] ^= 1; return b },
+		"crc":    func(b []byte) []byte { b[24] ^= 1; return b },
+		"seq":    func(b []byte) []byte { return append(refmodel.SegmentHeader(99), b[32:]...) },
+		"zeroed": func(b []byte) []byte { return make([]byte, len(b)) },
 	}
 	for name, f := range cases {
 		t.Run(name, func(t *testing.T) {

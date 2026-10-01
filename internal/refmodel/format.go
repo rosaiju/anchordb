@@ -19,15 +19,15 @@ func CRC(b []byte) uint32 { return crc32.Checksum(b, castagnoli) }
 
 // Spec constants (§2.1, §4).
 const (
-	FrameHeaderSize   = 16
-	FileHeaderSize    = 32
-	MaxKeySize        = 64 << 10
-	MaxValueSize      = 16 << 20
-	MaxTxBytes        = 64 << 20
-	MaxPayload        = 64<<20 + 1<<10
-	TypeCommit   byte = 1
-	TypeEntries  byte = 2
-	TypeTrailer  byte = 3
+	FrameHeaderSize      = 16
+	FileHeaderSize       = 32
+	MaxKeySize           = 64 << 10
+	MaxValueSize         = 16 << 20
+	MaxTxBytes           = 64 << 20
+	MaxPayload           = 64<<20 + 1<<10
+	TypeCommit      byte = 1
+	TypeEntries     byte = 2
+	TypeTrailer     byte = 3
 )
 
 // SegmentName / CheckpointName follow §4.
