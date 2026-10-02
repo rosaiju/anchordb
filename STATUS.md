@@ -19,7 +19,7 @@ AnchorDB is an educational engine, not production software.
   - CLI.
   - Demo scripts (bash + PowerShell).
   - Docs: README, architecture, correctness, learning guide, interview guide.
-- **Repository:** private `github.com/rosaiju/anchordb`, default branch `main`. The commit-and-push workflow is in `CLAUDE.md`.
+- **Repository:** public `github.com/rosaiju/anchordb` (since 2026-10-01), default branch `main`. The commit-and-push workflow is in `CLAUDE.md`.
 
 ## Bugs found by independent verification
 

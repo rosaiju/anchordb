@@ -6,7 +6,8 @@ for the current state and next steps.
 
 ## Commit-and-push workflow
 
-Remote: `https://github.com/rosaiju/anchordb` (private). Default branch: `main`.
+Remote: `https://github.com/rosaiju/anchordb` (public since 2026-10-01, after a full-history scan for
+secrets and personal data; never commit secrets or local databases such as `mydb/`). Default branch: `main`.
 
 1. Commit each meaningful, completed change with a descriptive message that
    says what changed and why. Do not create empty commits, and do not split a
